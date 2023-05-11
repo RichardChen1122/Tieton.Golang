@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/data/azappconfig"
 )
 
 type Controller struct {
@@ -62,8 +67,55 @@ func setup(test *map[string]string, src *map[string]string) {
 	fmt.Println((*test)["key"])
 }
 
+type Stest struct {
+	Test string
+}
+
+func pFoo(p *int) {
+	fmt.Printf("value: %#v\n", p) // value: (*int)(0xc420080008)
+	fmt.Printf("addr: %#v\n", &p) // addr: (**int)(0xc420088028)
+	*p = 11
+}
+
 func main() {
-	// fmt.Println("main")
+	fmt.Println("main")
+
+	srvLookup()
+
+	a := 10
+	pa := &a
+	fmt.Printf("address of a: %#v\n", pa)   // value: (*int)(0xc420080008)
+	fmt.Printf("address of pa: %#v\n", &pa) // addr: (**int)(0xc420088018)
+	pFoo(pa)
+
+	fmt.Printf("address of a: %#v\n", pa)   // value: (*int)(0xc420080008)
+	fmt.Printf("address of pa: %#v\n", &pa) // addr: (**int)(0xc420088018)
+
+	fmt.Printf("value of a: %d\n", a)
+	//Map()
+	//ExampleGroup_justErrors()
+	//ExampleGroup_noGoRoutine()
+	//RunGeneric()
+	credential, _ := azidentity.NewDefaultAzureCredential(nil)
+	client, _ := azappconfig.NewClient("https://junbchenconfig-test.azconfig.io", credential, nil)
+	var etag azcore.ETag = "AwjTinIYc1X8jH50-Gcvn6g0XwmPszOs660nnwv_e98"
+	setting, err := client.GetSetting(context.Background(), "aaaa", &azappconfig.GetSettingOptions{Label: nil, OnlyIfChanged: &etag})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(*setting.ETag)
+
+	// HttpHandler()
+	// fmt.Println(&a)
+	// var test Stest
+
+	// if &test == nil {
+	// 	fmt.Println("test is nil")
+	// }
+	// fmt.Println(test)
+	// fmt.Println(&test)
+
+	// fmt.Printf((*test).Test)
 
 	// channelA := make(chan int)
 	// go goroutineA(&channelA)
@@ -72,11 +124,30 @@ func main() {
 	// time.Sleep(time.Second * 10)
 	// fmt.Println("complete")
 	// credential, _ := azidentity.NewDefaultAzureCredential(nil)
-	// client, _ :=azappconfig.NewClient("https://junbchenconfig.azconfig.io", credential, nil)
+	// client, _ := azappconfig.NewClient("https://junbchenconfig.azconfig.io", credential, nil)
+
+	// keyFilter := "*"
+	// // //labelFilter := "\x00"
+	// labelFilter := "perftest1"
+
+	// pager := client.NewListSettingsPager(azappconfig.SettingSelector{KeyFilter: &keyFilter, LabelFilter: &labelFilter}, nil)
+	// ctx := context.TODO()
+	// for pager.More() {
+
+	// 	page, err := pager.NextPage(ctx)
+
+	// 	if err != nil {
+	// 		fmt.Println(err.Error())
+	// 	}
+
+	// 	for _, item := range page.Settings {
+	// 		fmt.Println(*item.Key)
+	// 	}
+	// }
 
 	// arrs := strings.Split("tsee\\,sfdsf,,est", ",")
 
-	// strings.Contains("test","test")
+	// strings.Contains("test", "test")
 
 	// for i := 0; i < len(arrs); i++ {
 	// 	fmt.Println(arrs[i])
@@ -116,7 +187,11 @@ func main() {
 	// yu["key"] = "value"
 
 	// setup(nil, &yu)
-	chanUsage()
+	// chanUsage()
+}
+
+func getFuncAddress(a string) {
+	fmt.Println(&a)
 }
 
 func Demo(student StudentInterface) {
